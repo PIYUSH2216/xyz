@@ -22,6 +22,9 @@ static void print_ast(ASTNode *node, int indent) {
 	case AST_STRING:
     	    printf("String: %.*s\n",node->string.length,node->string.value);
 	    break;
+	case AST_BOOLEAN:
+    	    printf("Boolean: %s\n",node->boolean_value ? "true" : "false");
+	    break;
         case AST_VARIABLE_DECLARATION:
             printf("VariableDeclaration\n");
 
@@ -53,7 +56,7 @@ static void print_ast(ASTNode *node, int indent) {
 
 int main(void) {
     const char *source =
-        "let x = \"message from xyz\";";
+        "let x = false;";
 
     Parser parser;
 

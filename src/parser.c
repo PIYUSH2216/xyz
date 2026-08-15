@@ -72,15 +72,24 @@ static ASTNode *parse_primary(Parser *parser) {
     }
 
      /* String literal */
-if (check(parser, TOKEN_STRING)) {
+    if (check(parser, TOKEN_STRING)) {
     advance_parser(parser);
 
     return ast_create_string(
         token.start,
         token.length
     );
-}
+    }
+    /* Boolean literal */
+    if (check(parser, TOKEN_TRUE)) {
+    advance_parser(parser);
+    return ast_create_boolean(1);
+    }
 
+    if (check(parser, TOKEN_FALSE)) {
+    advance_parser(parser);
+    return ast_create_boolean(0);
+    }
     parser_error(parser, "Expected an expression.");
     return NULL;
 }
