@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+#include <stdlib.h>
 #include "parser.h"
 
 static void print_ast(ASTNode *node, int indent) {
@@ -15,7 +15,9 @@ static void print_ast(ASTNode *node, int indent) {
         case AST_INTEGER:
             printf("Integer: %ld\n", node->integer_value);
             break;
-
+	case AST_FLOAT:
+    	    printf("Float: %f\n", node->float_value);
+            break;
 	case AST_NULL:
     	    printf("Null\n");
             break;
@@ -54,16 +56,61 @@ static void print_ast(ASTNode *node, int indent) {
     }
 }
 
-int main(void) {
-    const char *source =
-        "let x = false;";
+static char *read_file(const char *path) {
+    FILE *file = fopen(path, "rb");
 
-    Parser parser;
+    if (file == NULL) {
+        fprintf(stderr, "XYZ Error: Could not open file '%s'.\n", path);
+        return NULL;
+    }
 
+    fseek(file, 0, SEEK_END);
+    long size = ftell(file);
+    rewind(file);
+
+    if (size < 0) {
+        fclose(file);
+        fprintf(stderr, "XYZ Error: Could not determine file size.\n");
+        return NULL;
+    }
+
+    char *source = malloc((size_t)size + 1);
+
+    if (source == NULL) {
+        fclose(file);
+        fprintf(stderr, "XYZ Error: Not enough memory.\n");
+        return NULL;
+    }
+
+    size_t bytes_read = fread(source, 1, (size_t)size, file);
+
+    fclose(file);
+
+    if (bytes_read != (size_t)size) {
+        free(source);
+        fprintf(stderr, "XYZ Error: Could not read file '%s'.\n", path);
+        return NULL;
+    }
+
+    source[size] = '\0';
+
+    return source;
+}
+
+int main(int argc, char *argv[]){
+    if (argc != 2) {
+    fprintf(stderr, "Usage: xyz <file.xyz>\n");
+    return 1;
+}
+
+char *source = read_file(argv[1]);
+
+if (source == NULL) {
+    return 1;
+}
+     Parser parser;
     parser_init(&parser, source);
-
     ASTNode *ast = parser_parse(&parser);
-
     if (ast == NULL) {
         fprintf(stderr, "Failed to parse XYZ program.\n");
         return 1;
@@ -75,6 +122,6 @@ int main(void) {
     print_ast(ast, 0);
 
     ast_free(ast);
-
+    free(source);
     return 0;
 }

@@ -143,8 +143,22 @@ static Token number(Lexer *lexer) {
         advance_char(lexer);
     }
 
+    /* Check for fractional part */
+    if (peek_char(lexer) == '.' &&
+        is_digit(lexer->current[1])) {
+
+        advance_char(lexer); /* consume '.' */
+
+        while (is_digit(peek_char(lexer))) {
+            advance_char(lexer);
+        }
+
+        return make_token(lexer, TOKEN_FLOAT);
+    }
+
     return make_token(lexer, TOKEN_INTEGER);
 }
+
 static Token string(Lexer *lexer) {
     while (peek_char(lexer) != '"' && !is_at_end(lexer)) {
         if (peek_char(lexer) == '\n') {

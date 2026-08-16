@@ -1,0 +1,7 @@
+let integer = 10;
+let decimal = 3.147890;
+let message = "Hello from XYZ";
+let active = true;
+let inactive = false;
+let nothing = null;
+

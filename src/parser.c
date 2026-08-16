@@ -64,7 +64,27 @@ static ASTNode *parse_primary(Parser *parser) {
 
         return ast_create_integer(value);
     }
+	if (check(parser, TOKEN_FLOAT)) {
+ 	   Token token = parser->current;
+	   advance_parser(parser);
+ 	   char buffer[64];
+	   if (token.length >= (int)sizeof(buffer)) {
+        	parser_error(parser, "Float literal is too long.");
+        	return NULL;
+    		}
+		for (int i = 0; i < token.length; i++) {
+        		buffer[i] = token.start[i];
+    			}
 
+    		buffer[token.length] = '\0';
+		double value = 0.0;
+		if (sscanf(buffer, "%lf", &value) != 1) {
+        		parser_error(parser, "Invalid float literal.");
+        		return NULL;
+    			}
+
+    	return ast_create_float(value);
+	}
     /* Null literal */
     if (check(parser, TOKEN_NULL)) {
         advance_parser(parser);
