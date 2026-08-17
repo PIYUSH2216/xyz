@@ -1,6 +1,58 @@
 #include <stdlib.h>
 #include "ast.h"
 
+ASTNode *ast_create_program(void) {
+    ASTNode *node = malloc(sizeof(ASTNode));
+
+    if (node == NULL) {
+        return NULL;
+    }
+
+    node->type = AST_PROGRAM;
+    node->program.statements = NULL;
+    node->program.count = 0;
+    node->program.capacity = 0;
+
+    return node;
+}
+
+int ast_program_add(ASTNode *program, ASTNode *statement) {
+    if (program == NULL || statement == NULL) {
+        return 0;
+    }
+
+    if (program->type != AST_PROGRAM) {
+        return 0;
+    }
+
+    if (program->program.count >= program->program.capacity) {
+        int new_capacity =
+            program->program.capacity == 0
+                ? 8
+                : program->program.capacity * 2;
+
+        ASTNode **new_statements = realloc(
+            program->program.statements,
+            sizeof(ASTNode *) * new_capacity
+        );
+
+        if (new_statements == NULL) {
+            return 0;
+        }
+
+        program->program.statements = new_statements;
+        program->program.capacity = new_capacity;
+    }
+
+    program->program.statements[
+        program->program.count
+    ] = statement;
+
+    program->program.count++;
+
+    return 1;
+}
+
 ASTNode *ast_create_integer(long value) {
     ASTNode *node = malloc(sizeof(ASTNode));
 
@@ -113,7 +165,13 @@ void ast_free(ASTNode *node) {
         case AST_VARIABLE_DECLARATION:
             ast_free(node->variable_declaration.value);
             break;
+	case AST_PROGRAM:
+    	    for (int i = 0; i < node->program.count; i++) {
+            ast_free(node->program.statements[i]);
+    	    }
 
+    free(node->program.statements);
+    break;
         default:
             break;
     }

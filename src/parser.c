@@ -168,14 +168,45 @@ void parser_init(Parser *parser, const char *source) {
 }
 
 ASTNode *parser_parse(Parser *parser) {
-    if (check(parser, TOKEN_LET)) {
-        return parse_variable_declaration(parser);
+    ASTNode *program = ast_create_program();
+
+    if (program == NULL) {
+        parser_error(parser, "Could not create program AST.");
+        return NULL;
     }
 
-    parser_error(
-        parser,
-        "Expected a declaration or statement."
-    );
+    while (!check(parser, TOKEN_EOF)) {
 
-    return NULL;
+        if (check(parser, TOKEN_LET)) {
+            ASTNode *statement = parse_variable_declaration(parser);
+
+            if (statement == NULL) {
+                ast_free(program);
+                return NULL;
+            }
+
+            if (!ast_program_add(program, statement)) {
+                parser_error(
+                    parser,
+                    "Could not add statement to program."
+                );
+
+                ast_free(statement);
+                ast_free(program);
+                return NULL;
+            }
+
+            continue;
+        }
+
+        parser_error(
+            parser,
+            "Expected a declaration or statement."
+        );
+
+        ast_free(program);
+        return NULL;
+    }
+
+    return program;
 }

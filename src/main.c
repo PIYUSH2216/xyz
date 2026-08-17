@@ -12,7 +12,20 @@ static void print_ast(ASTNode *node, int indent) {
     }
 
     switch (node->type) {
-        case AST_INTEGER:
+        case AST_PROGRAM:
+    	printf("Program\n");
+	for (int i = 0; i < node->program.count; i++) {
+        for (int j = 0; j < indent + 1; j++) {
+            printf("  ");
+        }
+	printf("Statement %d:\n", i + 1);
+        print_ast(
+            node->program.statements[i],
+            indent + 2
+        );
+    	}
+	    break;
+	case AST_INTEGER:
             printf("Integer: %ld\n", node->integer_value);
             break;
 	case AST_FLOAT:

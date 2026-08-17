@@ -4,6 +4,7 @@
 #include "token.h"
 
 typedef enum {
+    AST_PROGRAM,
     AST_INTEGER,
     AST_FLOAT,
     AST_STRING,
@@ -22,6 +23,11 @@ struct ASTNode {
     ASTNodeType type;
 
     union {
+	struct {
+    	    ASTNode **statements;
+    	    int count;
+ 	    int capacity;
+	} program;
         long integer_value;
         double float_value;
         int boolean_value;
@@ -49,6 +55,9 @@ struct ASTNode {
         } variable_declaration;
     };
 };
+
+ASTNode *ast_create_program(void);
+int ast_program_add(ASTNode *program, ASTNode *statement);
 
 ASTNode *ast_create_integer(long value);
 ASTNode *ast_create_float(double value);
