@@ -78,7 +78,11 @@ ASTNode *ast_create_variable_declaration(
     int name_length,
     ASTNode *value
 );
-
+ASTNode *ast_create_binary(
+    ASTNode *left,
+    TokenType operator,
+    ASTNode *right
+);
 void ast_free(ASTNode *node);
 
 #endif

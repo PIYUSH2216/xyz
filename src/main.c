@@ -2,6 +2,26 @@
 #include <stdlib.h>
 #include "parser.h"
 
+static const char *operator_name(TokenType type) {
+    switch (type) {
+        case TOKEN_PLUS:  return "PLUS";
+        case TOKEN_MINUS: return "MINUS";
+        case TOKEN_STAR:  return "STAR";
+        case TOKEN_SLASH: return "SLASH";
+        case TOKEN_PERCENT: return "PERCENT";
+
+        case TOKEN_EQUAL_EQUAL:   return "EQUAL_EQUAL";
+        case TOKEN_BANG_EQUAL:   return "BANG_EQUAL";
+        case TOKEN_LESS:         return "LESS";
+        case TOKEN_LESS_EQUAL:   return "LESS_EQUAL";
+        case TOKEN_GREATER:      return "GREATER";
+        case TOKEN_GREATER_EQUAL: return "GREATER_EQUAL";
+
+        default:
+            return "UNKNOWN_OPERATOR";
+    }
+}
+
 static void print_ast(ASTNode *node, int indent) {
     if (node == NULL) {
         return;
@@ -40,6 +60,29 @@ static void print_ast(ASTNode *node, int indent) {
 	case AST_BOOLEAN:
     	    printf("Boolean: %s\n",node->boolean_value ? "true" : "false");
 	    break;
+	case AST_BINARY:
+    	    printf("Binary\n");
+	    for (int i = 0; i < indent + 1; i++) {
+        	printf("  ");
+    		}
+	    printf("operator: %s\n", operator_name(node->binary.operator));
+	    for (int i = 0; i < indent + 1; i++) {
+        	printf("  ");
+    		}
+		printf("left:\n");
+	        print_ast(
+        	node->binary.left,
+        	indent + 2
+    		);
+		for (int i = 0; i < indent + 1; i++) {
+        	printf("  ");
+    		}
+	        printf("right:\n");
+		print_ast(
+        	node->binary.right,
+        	indent + 2
+    		);
+    		break;
         case AST_VARIABLE_DECLARATION:
             printf("VariableDeclaration\n");
 

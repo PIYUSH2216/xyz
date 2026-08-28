@@ -151,6 +151,25 @@ ASTNode *ast_create_null(void) {
     return node;
 }
 
+ASTNode *ast_create_binary(
+    ASTNode *left,
+    TokenType operator,
+    ASTNode *right
+) {
+    ASTNode *node = malloc(sizeof(ASTNode));
+
+    if (node == NULL) {
+        return NULL;
+    }
+
+    node->type = AST_BINARY;
+    node->binary.left = left;
+    node->binary.operator = operator;
+    node->binary.right = right;
+
+    return node;
+}
+
 void ast_free(ASTNode *node) {
     if (node == NULL) {
         return;

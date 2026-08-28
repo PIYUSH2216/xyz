@@ -1,0 +1,7 @@
+let addition = 10 + 20;
+let subtraction = 20 - 5;
+let multiplication = 10 * 3;
+let division = 20 / 4;
+let remainder = 17 % 5;
+let precedence = 10 + 20 * 3;
+let parentheses = (10 + 20) * 3;

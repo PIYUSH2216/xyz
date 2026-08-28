@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include "parser.h"
 
+static ASTNode *parse_expression(Parser *parser);
+static ASTNode *parse_term(Parser *parser);
+static ASTNode *parse_factor(Parser *parser);
+static ASTNode *parse_primary(Parser *parser);
+
 static void advance_parser(Parser *parser) {
     parser->previous = parser->current;
     parser->current = lexer_scan_token(&parser->lexer);
@@ -36,6 +41,26 @@ static int consume(Parser *parser, TokenType type, const char *message) {
 static ASTNode *parse_primary(Parser *parser) {
     Token token = parser->current;
 
+	if (check(parser, TOKEN_LEFT_PAREN)) {
+    advance_parser(parser);
+
+    ASTNode *expression = parse_expression(parser);
+
+    if (expression == NULL) {
+        return NULL;
+    }
+
+    if (!consume(
+            parser,
+            TOKEN_RIGHT_PAREN,
+            "Expected ')' after expression."
+        )) {
+        ast_free(expression);
+        return NULL;
+    }
+
+    return expression;
+}
     /* Integer literal */
     if (check(parser, TOKEN_INTEGER)) {
         advance_parser(parser);
@@ -113,6 +138,83 @@ static ASTNode *parse_primary(Parser *parser) {
     parser_error(parser, "Expected an expression.");
     return NULL;
 }
+
+static ASTNode *parse_expression(Parser *parser) {
+    ASTNode *left = parse_term(parser);
+
+    if (left == NULL) {
+        return NULL;
+    }
+
+    while (check(parser, TOKEN_PLUS) ||
+           check(parser, TOKEN_MINUS)) {
+
+        TokenType operator = parser->current.type;
+
+        advance_parser(parser);
+
+        ASTNode *right = parse_term(parser);
+
+        if (right == NULL) {
+            ast_free(left);
+            return NULL;
+        }
+
+        ASTNode *binary =
+            ast_create_binary(left, operator, right);
+
+        if (binary == NULL) {
+            ast_free(left);
+            ast_free(right);
+            return NULL;
+        }
+
+        left = binary;
+    }
+
+    return left;
+}
+static ASTNode *parse_term(Parser *parser) {
+    ASTNode *left = parse_factor(parser);
+
+    if (left == NULL) {
+        return NULL;
+    }
+
+    while (check(parser, TOKEN_STAR) ||
+           check(parser, TOKEN_SLASH) ||
+           check(parser, TOKEN_PERCENT)) {
+
+        TokenType operator = parser->current.type;
+
+        advance_parser(parser);
+
+        ASTNode *right = parse_factor(parser);
+
+        if (right == NULL) {
+            ast_free(left);
+            return NULL;
+        }
+
+        ASTNode *binary =
+            ast_create_binary(left, operator, right);
+
+        if (binary == NULL) {
+            ast_free(left);
+            ast_free(right);
+            return NULL;
+        }
+
+        left = binary;
+    }
+
+    return left;
+}
+
+static ASTNode *parse_factor(Parser *parser) {
+    return parse_primary(parser);
+}
+
 static ASTNode *parse_variable_declaration(Parser *parser) {
     advance_parser(parser); /* consume 'let' */
 
@@ -134,7 +236,7 @@ static ASTNode *parse_variable_declaration(Parser *parser) {
         return NULL;
     }
 
-    ASTNode *value = parse_primary(parser);
+    ASTNode *value = parse_expression(parser);
 
     if (value == NULL) {
         return NULL;
