@@ -1,0 +1,9 @@
+let addition = 10 + 20;
+let subtraction = 20 - 5;
+let multiplication = 10 * 3;
+let division = 20 / 4;
+let remainder = 17 % 5;
+
+let x = 10;
+let mixed = x + 20;
+let complex = (x + 5) * 2;

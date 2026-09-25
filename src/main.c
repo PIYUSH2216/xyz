@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "parser.h"
+#include "evaluator.h"
 
 static const char *operator_name(TokenType type) {
     switch (type) {
@@ -16,7 +17,8 @@ static const char *operator_name(TokenType type) {
         case TOKEN_LESS_EQUAL:   return "LESS_EQUAL";
         case TOKEN_GREATER:      return "GREATER";
         case TOKEN_GREATER_EQUAL: return "GREATER_EQUAL";
-
+	case TOKEN_AND:  return "AND";
+	case TOKEN_OR:  return "OR";
         default:
             return "UNKNOWN_OPERATOR";
     }
@@ -59,7 +61,12 @@ static void print_ast(ASTNode *node, int indent) {
 	    break;
 	case AST_BOOLEAN:
     	    printf("Boolean: %s\n",node->boolean_value ? "true" : "false");
-	    break;
+ 	    break;
+	case AST_VARIABLE:
+	    printf("Variable: %.*s\n",
+            node->variable.length,
+            node->variable.name);
+    	    break;
 	case AST_BINARY:
     	    printf("Binary\n");
 	    for (int i = 0; i < indent + 1; i++) {
@@ -169,14 +176,27 @@ if (source == NULL) {
     ASTNode *ast = parser_parse(&parser);
     if (ast == NULL) {
         fprintf(stderr, "Failed to parse XYZ program.\n");
-        return 1;
+	return 1;
     }
-
+ 
+    Environment environment;
+    environment_init(&environment);
     printf("XYZ AST\n");
     printf("=======\n");
 
     print_ast(ast, 0);
+    printf("\nExecution\n");
+    printf("=========\n");
 
+    if (ast->type == AST_PROGRAM) {
+     for (int i = 0; i < ast->program.count; i++) {
+        Value result = evaluate(
+            ast->program.statements[i],
+            &environment);
+
+        value_print(result);
+    }
+}
     ast_free(ast);
     free(source);
     return 0;

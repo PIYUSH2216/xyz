@@ -1,0 +1,9 @@
+let a = true AND true;
+let b = true AND false;
+let c = true OR false;
+let d = false OR false;
+
+let e = 10 > 5 AND 20 > 10;
+let f = 10 > 50 OR 20 > 10;
+
+let g = (10 + 5 > 12) AND (20 == 20);

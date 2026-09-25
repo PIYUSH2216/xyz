@@ -1,0 +1,11 @@
+let equal = 10 == 10;
+let not_equal = 10 != 20;
+
+let less = 10 < 20;
+let less_equal = 10 <= 10;
+
+let greater = 20 > 10;
+let greater_equal = 20 >= 20;
+
+let x = 15;
+let result = x > 10;

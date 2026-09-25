@@ -2,6 +2,10 @@
 #include "parser.h"
 
 static ASTNode *parse_expression(Parser *parser);
+static ASTNode *parse_or(Parser *parser);
+static ASTNode *parse_and(Parser *parser);
+static ASTNode *parse_comparison(Parser *parser);
+static ASTNode *parse_additive(Parser *parser);
 static ASTNode *parse_term(Parser *parser);
 static ASTNode *parse_factor(Parser *parser);
 static ASTNode *parse_primary(Parser *parser);
@@ -130,32 +134,44 @@ static ASTNode *parse_primary(Parser *parser) {
     advance_parser(parser);
     return ast_create_boolean(1);
     }
-
     if (check(parser, TOKEN_FALSE)) {
     advance_parser(parser);
     return ast_create_boolean(0);
-    }
-    parser_error(parser, "Expected an expression.");
-    return NULL;
 }
 
-static ASTNode *parse_expression(Parser *parser) {
+/* Variable reference */
+if (check(parser, TOKEN_IDENTIFIER)) {
+    advance_parser(parser);
+
+    return ast_create_variable(
+        token.start,
+        token.length
+    );
+}
+
+parser_error(parser, "Expected an expression.");
+return NULL;
+
+}
+
+
+static ASTNode *parse_additive(Parser *parser)
+{
     ASTNode *left = parse_term(parser);
 
-    if (left == NULL) {
+    if (left == NULL)
         return NULL;
-    }
 
     while (check(parser, TOKEN_PLUS) ||
-           check(parser, TOKEN_MINUS)) {
-
+           check(parser, TOKEN_MINUS))
+    {
         TokenType operator = parser->current.type;
-
         advance_parser(parser);
 
         ASTNode *right = parse_term(parser);
 
-        if (right == NULL) {
+        if (right == NULL)
+        {
             ast_free(left);
             return NULL;
         }
@@ -163,7 +179,8 @@ static ASTNode *parse_expression(Parser *parser) {
         ASTNode *binary =
             ast_create_binary(left, operator, right);
 
-        if (binary == NULL) {
+        if (binary == NULL)
+        {
             ast_free(left);
             ast_free(right);
             return NULL;
@@ -174,6 +191,124 @@ static ASTNode *parse_expression(Parser *parser) {
 
     return left;
 }
+static ASTNode *parse_comparison(Parser *parser)
+{
+    ASTNode *left = parse_additive(parser);
+
+    if (left == NULL)
+        return NULL;
+
+    while (check(parser, TOKEN_EQUAL_EQUAL) ||
+           check(parser, TOKEN_BANG_EQUAL) ||
+           check(parser, TOKEN_LESS) ||
+           check(parser, TOKEN_LESS_EQUAL) ||
+           check(parser, TOKEN_GREATER) ||
+           check(parser, TOKEN_GREATER_EQUAL))
+    {
+        TokenType operator = parser->current.type;
+        advance_parser(parser);
+
+        ASTNode *right = parse_additive(parser);
+
+        if (right == NULL)
+        {
+            ast_free(left);
+            return NULL;
+        }
+
+        ASTNode *binary =
+            ast_create_binary(left, operator, right);
+
+        if (binary == NULL)
+        {
+            ast_free(left);
+            ast_free(right);
+            return NULL;
+        }
+
+        left = binary;
+    }
+
+    return left;
+}
+
+static ASTNode *parse_and(Parser *parser)
+{
+    ASTNode *left = parse_comparison(parser);
+
+    if (left == NULL)
+        return NULL;
+
+    while (check(parser, TOKEN_AND))
+    {
+        TokenType operator = parser->current.type;
+        advance_parser(parser);
+
+        ASTNode *right = parse_comparison(parser);
+
+        if (right == NULL)
+        {
+            ast_free(left);
+            return NULL;
+        }
+
+        ASTNode *binary =
+            ast_create_binary(left, operator, right);
+
+        if (binary == NULL)
+        {
+            ast_free(left);
+            ast_free(right);
+            return NULL;
+        }
+
+        left = binary;
+    }
+
+    return left;
+}
+
+static ASTNode *parse_or(Parser *parser)
+{
+    ASTNode *left = parse_and(parser);
+
+    if (left == NULL)
+        return NULL;
+
+    while (check(parser, TOKEN_OR))
+    {
+        TokenType operator = parser->current.type;
+        advance_parser(parser);
+
+        ASTNode *right = parse_and(parser);
+
+        if (right == NULL)
+        {
+            ast_free(left);
+            return NULL;
+        }
+
+        ASTNode *binary =
+            ast_create_binary(left, operator, right);
+
+        if (binary == NULL)
+        {
+            ast_free(left);
+            ast_free(right);
+            return NULL;
+        }
+
+        left = binary;
+    }
+
+    return left;
+}
+
+static ASTNode *parse_expression(Parser *parser)
+{
+    return parse_or(parser);
+}
+         
 static ASTNode *parse_term(Parser *parser) {
     ASTNode *left = parse_factor(parser);
 
