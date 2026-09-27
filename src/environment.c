@@ -50,3 +50,26 @@ int environment_get(
 
     return 0;
 }
+int environment_assign(
+    Environment *environment,
+    const char *name,
+    int length,
+    Value value
+)
+{
+    for (int i = 0; i < environment->count; i++)
+    {
+        if (environment->variables[i].name_length == length &&
+            strncmp(
+                environment->variables[i].name,
+                name,
+                length
+            ) == 0)
+        {
+            environment->variables[i].value = value;
+            return 1;
+        }
+    }
+
+    return 0;
+}

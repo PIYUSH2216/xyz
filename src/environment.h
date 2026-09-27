@@ -32,4 +32,10 @@ int environment_get(
     Value *value
 );
 
+int environment_assign(
+    Environment *environment,
+    const char *name,
+    int length,
+    Value value
+);
 #endif

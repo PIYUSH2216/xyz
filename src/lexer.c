@@ -140,7 +140,9 @@ static Token identifier(Lexer *lexer) {
     if (length == 2 && strncmp(lexer->start, "OR", 2) == 0) {
     return make_token(lexer, TOKEN_OR);
     }
-
+    if (length == 5 && strncmp(lexer->start, "print", 5) == 0){
+    return make_token(lexer, TOKEN_PRINT);
+    }
     return make_token(lexer, TOKEN_IDENTIFIER);
 }
 

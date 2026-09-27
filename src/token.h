@@ -14,6 +14,7 @@ typedef enum {
     TOKEN_LET,
     TOKEN_CONST,
     TOKEN_FN,
+    TOKEN_PRINT,
     TOKEN_RETURN,
     TOKEN_IF,
     TOKEN_ELSE,

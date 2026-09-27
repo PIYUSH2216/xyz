@@ -90,6 +90,44 @@ static void print_ast(ASTNode *node, int indent) {
         	indent + 2
     		);
     		break;
+	case AST_IF_STATEMENT:
+    printf("IfStatement\n");
+
+    for (int i = 0; i < indent + 1; i++)
+        printf("  ");
+    printf("condition:\n");
+    print_ast(node->if_statement.condition, indent + 2);
+
+    for (int i = 0; i < indent + 1; i++)
+        printf("  ");
+    printf("then:\n");
+    print_ast(node->if_statement.then_branch, indent + 2);
+
+    if (node->if_statement.else_branch != NULL)
+    {
+        for (int i = 0; i < indent + 1; i++)
+            printf("  ");
+        printf("else:\n");
+        print_ast(node->if_statement.else_branch, indent + 2);
+    }
+
+    break;
+	case AST_WHILE_STATEMENT:
+{
+	 printf("WhileStatement\n");
+
+    for (int i = 0; i < indent + 1; i++)
+        printf("  ");
+    printf("condition:\n");
+    print_ast(node->while_statement.condition, indent + 2);
+
+    for (int i = 0; i < indent + 1; i++)
+        printf("  ");
+    printf("body:\n");
+    print_ast(node->while_statement.body, indent + 2);
+
+    break;
+}
         case AST_VARIABLE_DECLARATION:
             printf("VariableDeclaration\n");
 
@@ -113,6 +151,21 @@ static void print_ast(ASTNode *node, int indent) {
             );
             break;
 
+	case AST_ASSIGNMENT:
+    printf("Assignment\n");
+
+    for (int i = 0; i < indent + 1; i++)
+        printf("  ");
+    printf("name: %.*s\n",
+           node->assignment.name_length,
+           node->assignment.name);
+
+    for (int i = 0; i < indent + 1; i++)
+        printf("  ");
+    printf("value:\n");
+
+    print_ast(node->assignment.value, indent + 2);
+    break;
         default:
             printf("Unknown AST node\n");
             break;

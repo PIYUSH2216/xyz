@@ -1,0 +1,7 @@
+let x = 15;
+
+if (x > 10) {
+    let result = 1;
+} else {
+    let result = 0;
+}

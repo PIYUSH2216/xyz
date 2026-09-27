@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include "parser.h"
 
-static ASTNode *parse_while_statement(Parser *parser);
 static ASTNode *parse_expression(Parser *parser);
-static ASTNode *parse_assignment(Parser *parser);
 static ASTNode *parse_or(Parser *parser);
 static ASTNode *parse_and(Parser *parser);
 static ASTNode *parse_comparison(Parser *parser);
@@ -13,12 +11,7 @@ static ASTNode *parse_factor(Parser *parser);
 static ASTNode *parse_primary(Parser *parser);
 static ASTNode *parse_block(Parser *parser);
 static ASTNode *parse_if_statement(Parser *parser);
-static ASTNode *parse_print_statement(Parser *parser);
-static int consume(
-    Parser *parser,
-    TokenType type,
-    const char *message
-);
+
 
 static void advance_parser(Parser *parser) {
     parser->previous = parser->current;
@@ -36,36 +29,6 @@ static void parser_error(Parser *parser, const char *message) {
             "XYZ Parser Error at line %d: %s\n",
             parser->current.line,
             message);
-}
-
-static ASTNode *parse_print_statement(Parser *parser)
-{
-    advance_parser(parser);   /* consume print */
-
-    if (!consume(parser, TOKEN_LEFT_PAREN,
-                 "Expected '(' after print."))
-        return NULL;
-
-    ASTNode *expr = parse_expression(parser);
-
-    if (expr == NULL)
-        return NULL;
-
-    if (!consume(parser, TOKEN_RIGHT_PAREN,
-                 "Expected ')' after value."))
-    {
-        ast_free(expr);
-        return NULL;
-    }
-
-    if (!consume(parser, TOKEN_SEMICOLON,
-                 "Expected ';' after print."))
-    {
-        ast_free(expr);
-        return NULL;
-    }
-
-    return ast_create_print(expr);
 }
 
 static int check(Parser *parser, TokenType type) {
@@ -216,7 +179,8 @@ static ASTNode *parse_additive(Parser *parser)
             return NULL;
         }
 
-        ASTNode *binary = ast_create_binary(left, operator, right);
+        ASTNode *binary =
+            ast_create_binary(left, operator, right);
 
         if (binary == NULL)
         {
@@ -407,6 +371,7 @@ static ASTNode *parse_variable_declaration(Parser *parser) {
             TOKEN_EQUAL,
             "Expected '=' after variable name."
         )) {
+
         return NULL;
     }
 
@@ -431,44 +396,6 @@ static ASTNode *parse_variable_declaration(Parser *parser) {
         value
     );
 }
-
-static ASTNode *parse_assignment(Parser *parser)
-{
-    Token name = parser->current;
-
-    advance_parser(parser);   /* consume identifier */
-
-    if (!consume(
-            parser,
-            TOKEN_EQUAL,
-            "Expected '=' after variable name."
-        ))
-    {
-        return NULL;
-    }
-
-    ASTNode *value = parse_expression(parser);
-
-    if (value == NULL)
-        return NULL;
-
-    if (!consume(
-            parser,
-            TOKEN_SEMICOLON,
-            "Expected ';' after assignment."
-        ))
-    {
-        ast_free(value);
-        return NULL;
-    }
-
-    return ast_create_assignment(
-        name.start,
-        name.length,
-        value
-    );
-}
-
 static ASTNode *parse_block(Parser *parser)
 {
     if (!consume(
@@ -483,7 +410,9 @@ static ASTNode *parse_block(Parser *parser)
     ASTNode *program = ast_create_program();
 
     if (program == NULL)
+    {
         return NULL;
+    }
 
     while (!check(parser, TOKEN_RIGHT_BRACE) &&
            !check(parser, TOKEN_EOF))
@@ -494,22 +423,6 @@ static ASTNode *parse_block(Parser *parser)
         {
             statement = parse_variable_declaration(parser);
         }
-        else if (check(parser, TOKEN_IDENTIFIER))
-        {
-            statement = parse_assignment(parser);
-        }
-        else if (check(parser, TOKEN_IF))
-        {
-            statement = parse_if_statement(parser);
-        }
-        else if (check(parser, TOKEN_WHILE))
-        {
-            statement = parse_while_statement(parser);
-        }
-	else if (check(parser, TOKEN_PRINT))
-	{
-    	    statement = parse_print_statement(parser);
-	}
         else
         {
             parser_error(
@@ -517,12 +430,6 @@ static ASTNode *parse_block(Parser *parser)
                 "Expected a statement inside block."
             );
 
-            ast_free(program);
-            return NULL;
-        }
-
-        if (statement == NULL)
-        {
             ast_free(program);
             return NULL;
         }
@@ -547,7 +454,6 @@ static ASTNode *parse_block(Parser *parser)
 
     return program;
 }
-
 static ASTNode *parse_if_statement(Parser *parser)
 {
     advance_parser(parser);   /* consume 'if' */
@@ -606,47 +512,6 @@ static ASTNode *parse_if_statement(Parser *parser)
         else_branch
     );
 }
-static ASTNode *parse_while_statement(Parser *parser)
-{
-    advance_parser(parser);   /* consume 'while' */
-
-    if (!consume(
-            parser,
-            TOKEN_LEFT_PAREN,
-            "Expected '(' after while."
-        ))
-    {
-        return NULL;
-    }
-
-    ASTNode *condition = parse_expression(parser);
-
-    if (condition == NULL)
-        return NULL;
-
-    if (!consume(
-            parser,
-            TOKEN_RIGHT_PAREN,
-            "Expected ')' after condition."
-        ))
-    {
-        ast_free(condition);
-        return NULL;
-    }
-
-    ASTNode *body = parse_block(parser);
-
-    if (body == NULL)
-    {
-        ast_free(condition);
-        return NULL;
-    }
-
-    return ast_create_while_statement(
-        condition,
-        body
-    );
-}
 void parser_init(Parser *parser, const char *source) {
     lexer_init(&parser->lexer, source);
 
@@ -662,65 +527,59 @@ ASTNode *parser_parse(Parser *parser)
 {
     ASTNode *program = ast_create_program();
 
-    if (program == NULL)
-    {
+    if (program == NULL) {
         parser_error(parser, "Could not create program AST.");
         return NULL;
     }
 
-    while (!check(parser, TOKEN_EOF))
-    {
-        ASTNode *statement = NULL;
+    while (!check(parser, TOKEN_EOF)) {
 
-        if (check(parser, TOKEN_LET))
-        {
-            statement = parse_variable_declaration(parser);
-        }
-        else if (check(parser, TOKEN_IDENTIFIER))
-        {
-            statement = parse_assignment(parser);
-        }
-        else if (check(parser, TOKEN_IF))
-        {
-            statement = parse_if_statement(parser);
-        }
-	else if (check(parser, TOKEN_WHILE))
-	{
-    	    statement = parse_while_statement(parser);
-	}
-	else if (check(parser, TOKEN_PRINT))
-	{
-    	    statement = parse_print_statement(parser);
-	}
-        else
-        {
-            parser_error(
-                parser,
-                "Expected a declaration or statement."
-            );
+        if (check(parser, TOKEN_LET)) {
+            ASTNode *statement = parse_variable_declaration(parser);
+	    if (check(parser, TOKEN_IF)){
+	        ASTNode *statement = parse_if_statement(parser);
+	    if (statement == NULL){
+        	ast_free(program);
+        	return NULL;
+    		}
+	    if (!ast_program_add(program, statement)){
+        ast_free(statement);
+        ast_free(program);
+        return NULL;
+	    }
+    continue;
+}
+            if (statement == NULL) {
+                ast_free(program);
+                return NULL;
+            }
 
-            ast_free(program);
-            return NULL;
-        }
+            if (!ast_program_add(program, statement)) {
+                parser_error(
+                    parser,
+                    "Could not add statement to program."
+                );
 
-        if (statement == NULL)
-        {
-            ast_free(program);
-            return NULL;
+                ast_free(statement);
+                ast_free(program);
+                return NULL;
+            }
+
+            continue;
         }
 
-        if (!ast_program_add(program, statement))
-        {
-            parser_error(
-                parser,
-                "Could not add statement to program."
-            );
+        parser_error(
+            parser,
+            "Expected a declaration or statement."
+        );
 
-            ast_free(statement);
-            ast_free(program);
-            return NULL;
-        }
+        ast_free(program);
+        return NULL;
     }
 
     return program;
 }
+
+
+
+

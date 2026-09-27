@@ -12,6 +12,10 @@ typedef enum {
     AST_BOOLEAN,
     AST_VARIABLE,
     AST_BINARY,
+    AST_IF_STATEMENT,
+    AST_WHILE_STATEMENT,
+    AST_ASSIGNMENT,
+    AST_PRINT,
     AST_VARIABLE_DECLARATION
 } ASTNodeType;
 
@@ -53,6 +57,23 @@ struct ASTNode {
             int name_length;
             ASTNode *value;
         } variable_declaration;
+	struct {
+    	    ASTNode *condition;
+    	    ASTNode *then_branch;
+    	    ASTNode *else_branch;
+	} if_statement;
+	struct {
+    	    const char *name;
+    	    int name_length;
+    	    ASTNode *value;
+	} assignment;
+	struct {
+    	    ASTNode *condition;
+    	    ASTNode *body;
+	} while_statement;
+	struct {
+    	    ASTNode *expression;
+	} print_statement;
     };
 };
 
@@ -78,11 +99,27 @@ ASTNode *ast_create_variable_declaration(
     int name_length,
     ASTNode *value
 );
+ASTNode *ast_create_if_statement(
+    ASTNode *condition,
+    ASTNode *then_branch,
+    ASTNode *else_branch
+);
 ASTNode *ast_create_binary(
     ASTNode *left,
     TokenType operator,
     ASTNode *right
 );
+ASTNode *ast_create_assignment(
+    const char *name,
+    int name_length,
+    ASTNode *value
+);
+ASTNode *ast_create_while_statement(
+    ASTNode *condition,
+    ASTNode *body
+);
+ASTNode *ast_create_print(ASTNode *expression);
+
 void ast_free(ASTNode *node);
 
 #endif

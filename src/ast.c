@@ -151,6 +151,25 @@ ASTNode *ast_create_null(void) {
     return node;
 }
 
+ASTNode *ast_create_assignment(
+    const char *name,
+    int name_length,
+    ASTNode *value
+)
+{
+    ASTNode *node = malloc(sizeof(ASTNode));
+
+    if (node == NULL)
+        return NULL;
+
+    node->type = AST_ASSIGNMENT;
+    node->assignment.name = name;
+    node->assignment.name_length = name_length;
+    node->assignment.value = value;
+
+    return node;
+}
+
 ASTNode *ast_create_binary(
     ASTNode *left,
     TokenType operator,
@@ -166,6 +185,47 @@ ASTNode *ast_create_binary(
     node->binary.left = left;
     node->binary.operator = operator;
     node->binary.right = right;
+
+    return node;
+}
+ASTNode *ast_create_if_statement(ASTNode *condition,ASTNode *then_branch,ASTNode *else_branch){
+    ASTNode *node = malloc(sizeof(ASTNode));
+    if(node == NULL)
+        return NULL;
+
+    node->type = AST_IF_STATEMENT;
+    node->if_statement.condition = condition;
+    node->if_statement.then_branch = then_branch;
+    node->if_statement.else_branch = else_branch;
+
+    return node;
+}
+ASTNode *ast_create_while_statement(
+    ASTNode *condition,
+    ASTNode *body
+)
+{
+    ASTNode *node = malloc(sizeof(ASTNode));
+
+    if (node == NULL)
+        return NULL;
+
+    node->type = AST_WHILE_STATEMENT;
+    node->while_statement.condition = condition;
+    node->while_statement.body = body;
+
+    return node;
+}
+
+ASTNode *ast_create_print(ASTNode *expression)
+{
+    ASTNode *node = malloc(sizeof(ASTNode));
+
+    if (node == NULL)
+        return NULL;
+
+    node->type = AST_PRINT;
+    node->print_statement.expression = expression;
 
     return node;
 }
@@ -188,7 +248,22 @@ void ast_free(ASTNode *node) {
     	    for (int i = 0; i < node->program.count; i++) {
             ast_free(node->program.statements[i]);
     	    }
-
+	    break;
+	case AST_IF_STATEMENT:
+    	    ast_free(node->if_statement.condition);
+    	    ast_free(node->if_statement.then_branch);
+    	    ast_free(node->if_statement.else_branch);
+	    break;
+	case AST_ASSIGNMENT:
+    	    ast_free(node->assignment.value);
+    	    break;
+	case AST_WHILE_STATEMENT:
+    	    ast_free(node->while_statement.condition);
+    	    ast_free(node->while_statement.body);
+    	    break;
+	case AST_PRINT:
+    	    ast_free(node->print_statement.expression);
+    	    break;
     free(node->program.statements);
     break;
         default:
